@@ -5,6 +5,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
+from langchain import HuggingFaceHub
+from langchain_community.embeddings import OllamaEmbeddings
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -29,7 +31,8 @@ def get_vectorstore_from_url(url):
     return vector_store
 
 def get_context_retriever_chain(vector_store):
-    llm = ChatOpenAI()
+    repo_id = "meta-llama/Meta-Llama-3-8B-Instruct"  
+    llm =  HuggingFaceHub(repo_id=repo_id, model_kwargs={"temperature": 0.1})
     
     retriever = vector_store.as_retriever()
     
@@ -42,10 +45,11 @@ def get_context_retriever_chain(vector_store):
     retriever_chain = create_history_aware_retriever(llm, retriever, prompt)
     
     return retriever_chain
-    
+
 def get_conversational_rag_chain(retriever_chain): 
-    
-    llm = ChatOpenAI()
+
+    repo_id = "meta-llama/Meta-Llama-3-8B-Instruct"  
+    llm =  HuggingFaceHub(repo_id=repo_id, model_kwargs={"temperature": 0.1})
     
     prompt = ChatPromptTemplate.from_messages([
       ("system", "Answer the user's questions based on the below context:\n\n{context}"),
@@ -53,7 +57,7 @@ def get_conversational_rag_chain(retriever_chain):
       ("user", "{input}"),
     ])
     
-    stuff_documents_chain = create_stuff_documents_chain(llm,prompt)
+    stuff_documents_chain = create_stuff_documents_chain(llm, prompt)
     
     return create_retrieval_chain(retriever_chain, stuff_documents_chain)
 
@@ -91,7 +95,7 @@ else:
 
     # user input
     user_query = st.chat_input("Type your message here...")
-    if user_query is not None and user_query != "":
+    if user_query is not None and user_query != "": #If the user input is not none and empty
         response = get_response(user_query)
         st.session_state.chat_history.append(HumanMessage(content=user_query))
         st.session_state.chat_history.append(AIMessage(content=response))
