@@ -6,6 +6,8 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_nomic.embeddings import NomicEmbeddings
+from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
@@ -24,12 +26,13 @@ def get_vectorstore_from_url(url):
     document_chunks = text_splitter.split_documents(document)
     
     # create a vectorstore from the chunks
-    vector_store = Chroma.from_documents(document_chunks, OpenAIEmbeddings())
+    vector_store = Chroma.from_documents(document_chunks, NomicEmbeddings(model="nomic-embed-text-v1.5"))
 
     return vector_store
 
 def get_context_retriever_chain(vector_store):
-    llm = ChatOpenAI()
+    #llm = ChatOpenAI()
+    llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0)
     
     retriever = vector_store.as_retriever()
     
@@ -45,7 +48,8 @@ def get_context_retriever_chain(vector_store):
 
 def get_conversational_rag_chain(retriever_chain): 
     
-    llm = ChatOpenAI()
+    #llm = ChatOpenAI()
+    llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0) 
     
     prompt = ChatPromptTemplate.from_messages([
       ("system", "Answer the user's questions based on the below context:\n\n{context}"),
