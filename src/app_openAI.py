@@ -26,13 +26,14 @@ def get_vectorstore_from_url(url):
     document_chunks = text_splitter.split_documents(document)
     
     # create a vectorstore from the chunks
-    vector_store = Chroma.from_documents(document_chunks, NomicEmbeddings(model="nomic-embed-text-v1.5"))
+    #vector_store = Chroma.from_documents(document_chunks, NomicEmbeddings(model="nomic-embed-text-v1.5"))
+    vector_store = Chroma.from_documents(document_chunks, OpenAIEmbeddings())
 
     return vector_store
 
 def get_context_retriever_chain(vector_store):
-    #llm = ChatOpenAI()
-    llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0)
+    llm = ChatOpenAI('GPT-4o')
+    #llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0)
     
     retriever = vector_store.as_retriever()
     
@@ -48,8 +49,8 @@ def get_context_retriever_chain(vector_store):
 
 def get_conversational_rag_chain(retriever_chain): 
     
-    #llm = ChatOpenAI()
-    llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0) 
+    llm = ChatOpenAI('GPT-4o')
+    #llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0) 
     
     prompt = ChatPromptTemplate.from_messages([
       ("system", "Answer the user's questions based on the below context:\n\n{context}"),
